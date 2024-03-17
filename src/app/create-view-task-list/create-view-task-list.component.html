@@ -1,0 +1,76 @@
+<div class="task-list">
+  <div *ngFor="let task of tasks; let i = index" class="task-container">
+    <div class="task" (click)="editTask(i)">
+      <div *ngIf="editingTaskIndex !== i" class="task-details">
+        <div class="task-title">{{ task.title }}</div>
+        <div class="task-info">Deadline: {{ task.deadline | date: 'MMM d' }}</div>
+        <div class="task-info">Priority: {{ task.priority }}</div>
+        <div class="task-info">Status: {{ task.status }}</div>
+        <div class="task-info">Assignees: {{ task.assignees }}</div>
+      </div>
+      <div *ngIf="editingTaskIndex === i" class="edit-task-form">
+        <form (ngSubmit)="saveTask()">
+          <ng-container *ngTemplateOutlet="taskFormTemplate; context: { task: tasks[i] }"></ng-container>
+          <button type="submit" class="save-button" mat-raised-button color="primary">Save Task</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="task-container">
+  <div *ngIf="isNewTaskFormVisible && !editingTaskIndex" class="new-task-form task">
+    <form (ngSubmit)="saveNewTask()">
+      <ng-container *ngTemplateOutlet="taskFormTemplate; context: { task: newTask }"></ng-container>
+      <button type="submit" class="save-button" mat-raised-button color="primary">Save Task</button>
+    </form>
+  </div>
+  </div>
+  <button (click)="toggleNewTaskForm()" [disabled]="editingTaskIndex !== null" class="add-task-button" mat-raised-button color="primary">Add Task</button>
+
+  <div *ngIf="isNewTaskFormVisible && editingTaskIndex" class="error-message">
+    You cannot create a new task while editing another task.
+  </div>
+</div>
+
+<ng-template #taskFormTemplate let-task="task">
+  <mat-form-field appearance="fill" class="form-field">
+    <mat-label>Title</mat-label>
+    <input matInput [(ngModel)]="task.title" name="taskTitle" placeholder="Task Title" required>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" class="form-field">
+    <mat-label>Deadline</mat-label>
+    <input matInput [matDatepicker]="picker" [(ngModel)]="task.deadline" name="taskDeadline" placeholder="Task Deadline">
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" class="form-field">
+    <mat-label>Priority</mat-label>
+    <mat-select [(ngModel)]="task.priority" name="taskPriority" placeholder="Task Priority">
+      <mat-option *ngFor="let priority of priorities" [value]="priority">{{ priority }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" class="form-field">
+    <mat-label>Status</mat-label>
+    <mat-select [(ngModel)]="task.status" name="taskStatus" placeholder="Task Status">
+      <mat-option *ngFor="let status of statuses" [value]="status">{{ status }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field class="form-field">
+    <mat-label>Assignees</mat-label>
+    <mat-chip-grid #chipGrid>
+      <mat-chip *ngFor="let assignee of task.assignees" (removed)="removeAssignee(assignee)">
+        {{ assignee }}
+        <mat-icon matChipRemove>cancel</mat-icon>
+      </mat-chip>
+      <input [matChipInputFor]="chipGrid"
+             [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+             (matChipInputTokenEnd)="addAssignee($event, task)">
+    </mat-chip-grid>
+  </mat-form-field>
+</ng-template>
+
+  
